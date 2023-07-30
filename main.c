@@ -31,6 +31,8 @@ int main (int argc, char **argv)
     int block_height = screen_height / (3 * num_rows);
     int clearance = 5;
     int ball_dim = 8;
+    int frame_counter = 0;
+    unsigned int score = 0;
 
     Vector2 ball_pos = {screen_width/2.0, screen_height/2.0};
     Vector2 ball_speed = {4.0, 3.0};
@@ -39,14 +41,11 @@ int main (int argc, char **argv)
     float paddle_speed = 10.0;
 
     bool game_over = 0;
-    int frame_counter = 0;
-
     struct Block blocks[num_blocks_per_row * num_rows];
     
     initialize_blocks(num_blocks_per_row, num_rows, &blocks[0], block_width, block_height);
 
-    InitWindow (screen_width, screen_height,
-            "Breakout!");
+    InitWindow (screen_width, screen_height, "Breakout!");
     SetTargetFPS (60);
 
     while (!WindowShouldClose())
@@ -54,7 +53,11 @@ int main (int argc, char **argv)
         // Restart game
         if (IsKeyPressed(KEY_R))
         {
-            game_over = !game_over;
+            // Check if the player won
+            if (score!=num_rows*num_blocks_per_row)
+                game_over = !game_over;
+            score = 0;
+            
             initialize_blocks(num_blocks_per_row, num_rows, 
                     &blocks[0], block_width, block_height);
             paddle_pos = screen_width / 2.0;
@@ -63,7 +66,7 @@ int main (int argc, char **argv)
         }
         
         // Ball movement
-        if (!game_over)
+        if (!game_over && score<num_rows*num_blocks_per_row)
         {
             ball_pos.x += ball_speed.x;
             ball_pos.y += ball_speed.y;
@@ -79,9 +82,9 @@ int main (int argc, char **argv)
             // Paddle
             if (ball_pos.y>=screen_height-paddle_height-ball_dim/2.0)
             {
-                if (ball_pos.x>=paddle_pos-paddle_width/2.0
-                     && ball_pos.x<=paddle_pos+paddle_width/2.0)
-                     ball_speed.y *= -1.0;
+                if (ball_pos.x+ball_dim/2.0>=paddle_pos-paddle_width/2.0
+                     && ball_pos.x-ball_dim/2.0<=paddle_pos+paddle_width/2.0)
+                    ball_speed.y *= -1.0;
                 else
                     game_over = !game_over;
             }
@@ -102,11 +105,13 @@ int main (int argc, char **argv)
                     else if (ball_pos.y+ball_dim/2.0>=curr_block->block_pos.y
                         || ball_pos.y-ball_dim/2.0<=curr_block->block_pos.y+block_height)
                         ball_speed.y *= -1.0;
+                    score++;
                 }
             }
         }
-        else 
+        else
             frame_counter++;
+        
     
         // Paddle movement
         if (IsKeyDown(KEY_LEFT) && paddle_pos-paddle_width/2.0 >= 0.0)
@@ -136,16 +141,23 @@ int main (int argc, char **argv)
         // Draw ball
         DrawCircleV(ball_pos, (float)ball_dim / 2.0, WHITE);
         
-        // Draw "game over" sign
-        if (game_over)
+        // Draw "you won" sign
+        if (score==num_rows*num_blocks_per_row && ((frame_counter/30)%2))
         {
-            DrawText("GAME OVER.", 250, 200, 30, YELLOW);
+            DrawText("YOU WON !!!", 300, 200, 30, YELLOW);
+            DrawText("PRESS R TO RESTART OR ESC TO EXIT.", 100, 240, 30, YELLOW);
+        }
+        
+        // Draw "game over" sign
+        if (game_over && ((frame_counter/30)%2))
+        {
+            DrawText("GAME OVER.", 300, 200, 30, YELLOW);
             DrawText("PRESS R TO RESTART OR ESC TO EXIT.", 100, 240, 30, YELLOW);
         }
 
-        EndDrawing ();
+        EndDrawing();
     }
-    CloseWindow ();
+    CloseWindow();
 
     return 0;
 }
