@@ -3,144 +3,145 @@
 
 struct Block
 {
-    Vector2 blockPos;
+    Vector2 block_pos;
     bool state;
 } Block;
 
-void initialize_blocks(int numBlocksPerRow, int numRows, 
+// Sets block positions and state
+void initialize_blocks(int num_blocks_per_row, int num_rows, 
                        struct Block* blocks, 
-                       int blockWidth, int blockHeight)
+                       int block_width, int block_height)
 {
     // Initialize blocks
-    for (size_t i=0; i<numBlocksPerRow * numRows; ++i)
+    for (size_t i=0; i<num_blocks_per_row * num_rows; ++i)
     {
-        blocks[i].blockPos.x = (i%numBlocksPerRow)*blockWidth;
-        blocks[i].blockPos.y = (i/numRows)*blockHeight;
+        blocks[i].block_pos.x = (i%num_blocks_per_row)*block_width;
+        blocks[i].block_pos.y = (i/num_rows)*block_height;
         blocks[i].state = 1;
     }
 }
 
 int main (int argc, char **argv)
 {
-    const int screenWidth = 800, screenHeight = 450;
-    int paddleWidth = screenWidth / 10;
-    int paddleHeight = paddleWidth / 10;
-    int numBlocksPerRow = 10, numRows = 10;
-    int blockWidth = screenWidth / numBlocksPerRow;
-    int blockHeight = screenHeight / (3 * numRows);
+    const int screen_width = 800, screen_height = 450;
+    int paddle_width = screen_width / 10;
+    int paddle_height = paddle_width / 10;
+    int num_blocks_per_row = 10, num_rows = 10;
+    int block_width = screen_width / num_blocks_per_row;
+    int block_height = screen_height / (3 * num_rows);
     int clearance = 5;
-    int ballDim = 8;
+    int ball_dim = 8;
 
-    Vector2 ballPos = {screenWidth/2.0, screenHeight/2.0};
-    Vector2 ballSpeed = {4.0, 3.0};
+    Vector2 ball_pos = {screen_width/2.0, screen_height/2.0};
+    Vector2 ball_speed = {4.0, 3.0};
 
-    float paddlePos = screenWidth / 2.0;
-    float paddleSpeed = 10.0;
+    float paddle_pos = screen_width / 2.0;
+    float paddle_speed = 10.0;
 
-    bool pause = 0, gameOver = 0;
-    int frameCounter = 0;
+    bool game_over = 0;
+    int frame_counter = 0;
 
-    struct Block blocks[numBlocksPerRow * numRows];
+    struct Block blocks[num_blocks_per_row * num_rows];
     
-    initialize_blocks(numBlocksPerRow, numRows, &blocks[0], blockWidth, blockHeight);
+    initialize_blocks(num_blocks_per_row, num_rows, &blocks[0], block_width, block_height);
 
-    InitWindow (screenWidth, screenHeight,
-            "raylib [core] example - basic window");
+    InitWindow (screen_width, screen_height,
+            "Breakout!");
     SetTargetFPS (60);
 
     while (!WindowShouldClose())
     {
-        if (IsKeyPressed(KEY_SPACE))
-            pause = !pause;
         // Restart game
         if (IsKeyPressed(KEY_R))
         {
-            gameOver = !gameOver;
-            initialize_blocks(numBlocksPerRow, numRows, &blocks[0], blockWidth, blockHeight);
-            paddlePos = screenWidth / 2.0;
-            ballPos.x = screenWidth / 2.0;
-            ballPos.y = screenHeight / 2.0;
+            game_over = !game_over;
+            initialize_blocks(num_blocks_per_row, num_rows, 
+                    &blocks[0], block_width, block_height);
+            paddle_pos = screen_width / 2.0;
+            ball_pos.x = screen_width / 2.0;
+            ball_pos.y = screen_height / 2.0;
         }
         
         // Ball movement
-        if (!pause && !gameOver)
+        if (!game_over)
         {
-            ballPos.x += ballSpeed.x;
-            ballPos.y += ballSpeed.y;
+            ball_pos.x += ball_speed.x;
+            ball_pos.y += ball_speed.y;
 
             // Collision detection
             // Left and right walls
-            if (((ballPos.x >= (screenWidth - ballDim / 2.0)))
-                 || (ballPos.x <= ballDim / 2.0))
-                ballSpeed.x *= -1.0;
+            if ((ball_pos.x >= screen_width - ball_dim / 2.0)
+                 || ball_pos.x <= ball_dim / 2.0)
+                ball_speed.x *= -1.0;
             // Upper wall
-            if (ballPos.y <= ballDim / 2.0)
-                 ballSpeed.y *= -1.0;
+            if (ball_pos.y <= ball_dim / 2.0)
+                 ball_speed.y *= -1.0;
             // Paddle
-            if (ballPos.y>=screenHeight-paddleHeight-ballDim/2.0)
+            if (ball_pos.y>=screen_height-paddle_height-ball_dim/2.0)
             {
-                if ((ballPos.x>=paddlePos-paddleWidth/2.0)
-                     && (ballPos.x<=paddlePos+paddleWidth/2.0))
-                     ballSpeed.y *= -1.0;
+                if (ball_pos.x>=paddle_pos-paddle_width/2.0
+                     && ball_pos.x<=paddle_pos+paddle_width/2.0)
+                     ball_speed.y *= -1.0;
                 else
-                    gameOver = !gameOver;
+                    game_over = !game_over;
             }
             // Blocks
-            if (ballPos.y-ballDim/2.0<=blockHeight*numRows)
+            if (ball_pos.y-ball_dim/2.0<=block_height*num_rows)
             {
-                int rowNum = ballPos.y/blockHeight-1;
-                int colNum = ballPos.x/blockWidth;
+                int row_num = ball_pos.y/block_height-1;
+                int col_num = ball_pos.x/block_width;
 
-                struct Block* curr_block = &blocks[rowNum*numBlocksPerRow+colNum];
+                struct Block* curr_block = &blocks[row_num*num_blocks_per_row+col_num];
 
                 if (curr_block->state)
                 {
                     curr_block->state = 0;
-                    if ((ballPos.x+ballDim/2.0>=curr_block->blockPos.x)
-                        || (ballPos.x-ballDim/2.0<=curr_block->blockPos.x+blockWidth))
-                        ballSpeed.x *= -1.0;
-                    else if ((ballPos.y+ballDim/2.0>=curr_block->blockPos.y)
-                        || (ballPos.y-ballDim/2.0<=curr_block->blockPos.y+blockHeight))
-                        ballSpeed.y *= -1.0;
+                    if (ball_pos.x+ball_dim/2.0>=curr_block->block_pos.x
+                        || ball_pos.x-ball_dim/2.0<=curr_block->block_pos.x+block_width)
+                        ball_speed.x *= -1.0;
+                    else if (ball_pos.y+ball_dim/2.0>=curr_block->block_pos.y
+                        || ball_pos.y-ball_dim/2.0<=curr_block->block_pos.y+block_height)
+                        ball_speed.y *= -1.0;
                 }
             }
         }
         else 
-            frameCounter++;
+            frame_counter++;
     
         // Paddle movement
-        if (IsKeyDown(KEY_LEFT) && paddlePos-paddleWidth/2.0 >= 0.0)
-            paddlePos -= 1.0 * paddleSpeed;
-        if (IsKeyDown(KEY_RIGHT) && paddlePos+paddleWidth/2.0 <= screenWidth)
-            paddlePos += 1.0 * paddleSpeed;
+        if (IsKeyDown(KEY_LEFT) && paddle_pos-paddle_width/2.0 >= 0.0)
+            paddle_pos -= 1.0 * paddle_speed;
+        if (IsKeyDown(KEY_RIGHT) && paddle_pos+paddle_width/2.0 <= screen_width)
+            paddle_pos += 1.0 * paddle_speed;
 
         BeginDrawing ();
-        ClearBackground (BLACK);
+        ClearBackground(BLACK);
 
         // Draw paddle
-        DrawRectangle (paddlePos - paddleWidth / 2,
-      	     screenHeight - paddleHeight, paddleWidth, paddleHeight,
+        DrawRectangle (paddle_pos - paddle_width / 2,
+      	     screen_height - paddle_height, paddle_width, paddle_height,
       	     WHITE);
 
         // Draw blocks
-        for (size_t i = 0; i < numRows*numBlocksPerRow; ++i)
+        for (size_t i = 0; i < num_rows*num_blocks_per_row; ++i)
         {
             if (blocks[i].state==0)
                 continue;
-            DrawRectangle (blocks[i].blockPos.x + clearance,
-                 blocks[i].blockPos.y + clearance,
-                 blockWidth - clearance,
-                 blockHeight - clearance, GREEN);
+            DrawRectangle (blocks[i].block_pos.x + clearance,
+                 blocks[i].block_pos.y + clearance,
+                 block_width - clearance,
+                 block_height - clearance, GREEN);
         }
 
         // Draw ball
-        DrawCircleV(ballPos, (float)ballDim / 2.0, WHITE);
+        DrawCircleV(ball_pos, (float)ball_dim / 2.0, WHITE);
         
-        // Draw "paused" or "game over" signs
-        if (pause && ((frameCounter/30)%2))
-            DrawText("PAUSED", 300, 200, 30, YELLOW);
-        if (gameOver && ((frameCounter/30)%2))
-            DrawText("GAME OVER. PRESS R TO RESTART.", 100, 200, 30, YELLOW);
+        // Draw "game over" sign
+        if (game_over)
+        {
+            DrawText("GAME OVER.", 250, 200, 30, YELLOW);
+            DrawText("PRESS R TO RESTART OR ESC TO EXIT.", 100, 240, 30, YELLOW);
+        }
 
         EndDrawing ();
     }
