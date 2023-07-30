@@ -99,10 +99,8 @@ int main (int argc, char **argv)
                 if (curr_block->state)
                 {
                     curr_block->state = 0;
-                    if (ball_pos.x+ball_dim/2.0>=curr_block->block_pos.x
-                        || ball_pos.x-ball_dim/2.0<=curr_block->block_pos.x+block_width)
-                        ball_speed.x *= -1.0;
-                    else if (ball_pos.y+ball_dim/2.0>=curr_block->block_pos.y
+                    
+                    if (ball_pos.y+ball_dim/2.0>=curr_block->block_pos.y
                         || ball_pos.y-ball_dim/2.0<=curr_block->block_pos.y+block_height)
                         ball_speed.y *= -1.0;
                     score++;
